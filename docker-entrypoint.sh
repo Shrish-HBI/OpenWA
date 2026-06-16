@@ -6,6 +6,13 @@ set -e
 mkdir -p /app/data/sessions /app/data/media /app/data/plugins
 chown -R openwa:openwa /app/data
 
+# Remove stale Chromium lock files left by previous containers. On restart/rebuild the
+# container hostname changes but the named volume retains the old SingletonLock, causing
+# "profile appears to be in use by another Chromium process" errors.
+find /app/data/sessions -name 'SingletonLock' -delete 2>/dev/null || true
+find /app/data/sessions -name 'SingletonCookie' -delete 2>/dev/null || true
+find /app/data/sessions -name 'SingletonSocket' -delete 2>/dev/null || true
+
 # Chromium resolves its home from the passwd entry (no /home/openwa exists), so it hard-crashes at
 # launch unless its config/cache dirs exist and are writable. XDG_CONFIG_HOME/XDG_CACHE_HOME (set in
 # the image) point here; create them owned by openwa. On a read_only rootfs these live on tmpfs /tmp,

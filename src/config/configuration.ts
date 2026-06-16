@@ -29,27 +29,12 @@ export default () => ({
     logging: process.env.DATABASE_LOGGING === 'true',
   },
 
-  // Data Storage Database configuration (pluggable: SQLite, PostgreSQL, etc.)
+  // Data Storage Database configuration (SQLite only)
   dataDatabase: {
-    type: process.env.DATABASE_TYPE || 'sqlite',
-    // SQLite path (used when type is sqlite)
+    type: 'sqlite',
     database: process.env.DATABASE_NAME || './data/openwa.sqlite',
-    // Postgres database NAME (used when type is postgres). Resolved from the same
-    // DATABASE_NAME env as the migration CLI (data-source.ts) so the runtime factory and
-    // migrations never target different databases. Distinct sqlite-vs-pg defaults.
-    name: process.env.DATABASE_NAME || 'openwa',
-    // PostgreSQL/MySQL connection (used when type is postgres/mysql)
-    host: process.env.DATABASE_HOST || 'localhost',
-    port: parseInt(process.env.DATABASE_PORT || '5432', 10),
-    username: process.env.DATABASE_USERNAME,
-    password: process.env.DATABASE_PASSWORD,
-    synchronize: process.env.DATABASE_SYNCHRONIZE === 'true',
+    synchronize: process.env.DATABASE_SYNCHRONIZE !== 'false',
     logging: process.env.DATABASE_LOGGING === 'true',
-    // Connection pooling (PostgreSQL)
-    poolSize: parseInt(process.env.DATABASE_POOL_SIZE || '10', 10),
-    // SSL configuration
-    ssl: process.env.DATABASE_SSL === 'true',
-    sslRejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false',
   },
 
   // WhatsApp engine configuration

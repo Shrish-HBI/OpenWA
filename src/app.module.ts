@@ -76,14 +76,15 @@ if (process.env.QUEUE_ENABLED === 'true') {
       },
     }),
 
-    // Data Storage Database (pluggable - user data)
+    // Data Storage Database (SQLite only)
     TypeOrmModule.forRootAsync({
       name: 'data',
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const dbType = configService.get<'sqlite' | 'postgres'>('dataDatabase.type', 'sqlite');
-        const baseConfig = {
+        return {
+          type: 'sqlite' as const,
+          database: configService.get<string>('dataDatabase.database', './data/openwa.sqlite'),
           entities: [
             __dirname + '/modules/session/**/*.entity{.ts,.js}',
             __dirname + '/modules/webhook/**/*.entity{.ts,.js}',
@@ -92,42 +93,6 @@ if (process.env.QUEUE_ENABLED === 'true') {
           ],
           migrations: [__dirname + '/database/migrations/*{.ts,.js}'],
           logging: configService.get<boolean>('dataDatabase.logging', false),
-        };
-
-        if (dbType === 'postgres') {
-          return {
-            ...baseConfig,
-            type: 'postgres' as const,
-            host: configService.get<string>('dataDatabase.host'),
-            port: configService.get<number>('dataDatabase.port'),
-            username: configService.get<string>('dataDatabase.username'),
-            password: configService.get<string>('dataDatabase.password'),
-            database: configService.get<string>('dataDatabase.name', 'openwa'),
-
-            ssl: configService.get<boolean>('dataDatabase.ssl', false)
-              ? {
-                  rejectUnauthorized: configService.get<boolean>('dataDatabase.sslRejectUnauthorized', true),
-                }
-              : false,
-
-            // Never auto-sync Postgres in production; rely on migrations.
-            synchronize: configService.get<boolean>('dataDatabase.synchronize', false),
-            migrationsRun: true,
-            retryAttempts: 10,
-            retryDelay: 3000,
-            extra: {
-              max: configService.get<number>('dataDatabase.poolSize', 10),
-            },
-          };
-        }
-
-        // SQLite: zero-config. Default to synchronize=true so the embedded
-        // database "just works" on first boot without a separate migration step.
-        // Users can opt out with DATABASE_SYNCHRONIZE=false to use migrations instead.
-        return {
-          ...baseConfig,
-          type: 'sqlite' as const,
-          database: configService.get<string>('dataDatabase.database', './data/openwa.sqlite'),
           synchronize: configService.get<boolean>('dataDatabase.synchronize', true),
           migrationsRun: !configService.get<boolean>('dataDatabase.synchronize', true),
         };

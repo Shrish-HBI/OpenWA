@@ -78,8 +78,6 @@ async function bootstrap() {
   // Fail fast: never start production with default/placeholder secrets.
   assertNoDefaultSecretsInProduction({
     nodeEnv: process.env.NODE_ENV,
-    databaseType: process.env.DATABASE_TYPE,
-    databasePassword: process.env.DATABASE_PASSWORD,
     storageType: process.env.STORAGE_TYPE,
     s3AccessKey: process.env.S3_ACCESS_KEY,
     s3SecretKey: process.env.S3_SECRET_KEY,

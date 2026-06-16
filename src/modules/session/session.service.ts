@@ -285,7 +285,24 @@ export class SessionService implements OnModuleDestroy, OnModuleInit, OnApplicat
       baseDelay: config?.reconnectBaseDelay ?? 5000,
     });
 
-    await this.initializeEngine(id, session);
+    try {
+      await this.initializeEngine(id, session);
+    } catch (error) {
+      // Engine failed to initialize (Chromium crash, missing deps, etc.)
+      // Clean up the engine reference so the session can be retried
+      this.engines.delete(id);
+      this.sessionErrors.set(id, error instanceof Error ? error.message : String(error));
+      await this.updateStatus(id, SessionStatus.FAILED);
+
+      this.logger.error(`Engine initialization failed for session: ${session.name}`, String(error), {
+        sessionId: id,
+        action: 'engine_init_failed',
+      });
+
+      throw new BadRequestException(
+        `Failed to start session: ${error instanceof Error ? error.message : 'Engine initialization failed'}`,
+      );
+    }
     return this.findOne(id);
   }
 

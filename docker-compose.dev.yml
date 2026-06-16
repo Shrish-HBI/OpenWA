@@ -29,6 +29,7 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    shm_size: '256mb'
     pids_limit: 512
     mem_limit: ${OPENWA_MEM_LIMIT:-2g}
     ports:
@@ -49,6 +50,7 @@ services:
       - SESSION_DATA_PATH=/app/data/sessions
       - PUPPETEER_HEADLESS=true
       - PUPPETEER_ARGS=--no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-gpu
+      - WWEBJS_WEB_VERSION=${WWEBJS_WEB_VERSION:-}
       - STORAGE_TYPE=local
       - STORAGE_LOCAL_PATH=/app/data/media
       - WEBHOOK_TIMEOUT=10000

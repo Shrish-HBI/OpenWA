@@ -78,6 +78,7 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    shm_size: '256mb' # Chromium needs more than Docker's default 64MB /dev/shm
     pids_limit: 512
     mem_limit: ${OPENWA_MEM_LIMIT:-2g} # tune up for many concurrent sessions
     ports:
@@ -105,6 +106,9 @@ services:
       - SESSION_DATA_PATH=/app/data/sessions
       - PUPPETEER_HEADLESS=${PUPPETEER_HEADLESS:-true}
       - PUPPETEER_ARGS=${PUPPETEER_ARGS:---no-sandbox,--disable-setuid-sandbox,--disable-dev-shm-usage,--disable-gpu}
+      # Pin WA-Web version to fix "stuck at authenticating" (#251)
+      - WWEBJS_WEB_VERSION=${WWEBJS_WEB_VERSION:-}
+      - WWEBJS_WEB_VERSION_REMOTE_PATH=${WWEBJS_WEB_VERSION_REMOTE_PATH:-}
       # Storage
       - STORAGE_TYPE=${STORAGE_TYPE:-local}
       - STORAGE_LOCAL_PATH=/app/data/media

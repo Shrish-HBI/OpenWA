@@ -14,6 +14,7 @@ import {
 import { BullBoardAuthMiddleware } from './common/security/bull-board-auth.middleware';
 import { AuthService } from './modules/auth/auth.service';
 import { Request, Response, NextFunction, json, urlencoded } from 'express';
+import * as express from 'express';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -198,6 +199,22 @@ async function bootstrap() {
   app.use('/api/admin/queues', (req: Request, res: Response, next: NextFunction) => {
     void bullBoardAuth.use(req, res, next);
   });
+
+  // Serve the built frontend (dashboard) from the same port.
+  // In production, build the frontend first (`cd frontend && npm run build`)
+  // then the backend serves it as static files. API routes take precedence (/api/*).
+  const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
+  if (fs.existsSync(frontendDistPath)) {
+    app.use(express.static(frontendDistPath));
+    // SPA fallback: any route not matching /api/* serves index.html
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      if (req.path.startsWith('/api')) {
+        return next();
+      }
+      res.sendFile(path.join(frontendDistPath, 'index.html'));
+    });
+    console.log(`📊 Dashboard served at: http://localhost:${process.env.PORT || 2785}`);
+  }
 
   const port = process.env.PORT || 2785;
   await app.listen(port);
